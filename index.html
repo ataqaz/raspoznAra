@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Распознавание арабского текста</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 90%;
+      width: 400px;
+    }
+
+    .upload-btn {
+      background-color: #007bff;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .upload-btn:hover {
+      background-color: #0056b3;
+    }
+
+    .upload-btn i {
+      margin-right: 10px;
+    }
+
+    .loading {
+      display: none;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #007bff;
+    }
+
+    .output {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: right;
+      direction: rtl;
+      white-space: pre-wrap;
+      font-family: 'Arial', sans-serif;
+    }
+
+    footer {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    footer a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Распознавание арабского текста</h1>
+    <button class="upload-btn" id="uploadBtn">
+      <i>📷</i> Загрузить изображение
+    </button>
+    <div class="loading" id="loading">Обработка...</div>
+    <div class="output" id="output"></div>
+  </div>
+  <footer>
+    Распознавание арабского текста<br>
+    By <a href="https://github.com/" target="_blank">Codemist</a>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
+  <script>
+    const uploadBtn = document.getElementById('uploadBtn');
+    const loading = document.getElementById('loading');
+    const output = document.getElementById('output');
+
+    uploadBtn.addEventListener('click', () => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          recognizeText(file);
+        }
+      };
+      input.click();
+    });
+
+    async function recognizeText(file) {
+      loading.style.display = 'block';
+      output.textContent = '';
+
+      const worker = await Tesseract.createWorker({
+        logger: (m) => console.log(m),
+      });
+
+      await worker.load();
+      await worker.loadLanguage('ara');
+      await worker.initialize('ara');
+
+      const { data: { text } } = await worker.recognize(file);
+      await worker.terminate();
+
+      loading.style.display = 'none';
+      typeText(text);
+    }
+
+    function typeText(text) {
+      let index = 0;
+      output.textContent = '';
+      const interval = setInterval(() => {
+        if (index < text.length) {
+          output.textContent += text[index];
+          index++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 50);
+    }
+  </script>
+</body>
+</html>
